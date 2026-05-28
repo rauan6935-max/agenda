@@ -1,25 +1,29 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
-<title>Agenda Online Studio</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio Agendamentos</title>
 
 <style>
 
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial;
+}
+
 body{
-    background:#0f0f0f;
+    background:linear-gradient(135deg,#000,#111);
     color:white;
-    font-family:Poppins;
     padding:20px;
 }
 
 h1{
     text-align:center;
+    color:#d4af37;
+    font-size:32px;
     margin-bottom:20px;
 }
 
@@ -29,104 +33,92 @@ h1{
     gap:20px;
 }
 
-.card{
-    background:#181818;
-    padding:25px;
-    border-radius:20px;
+/* RESPONSIVO */
+@media(max-width:900px){
+    .container{
+        grid-template-columns:1fr;
+    }
 }
 
-label{
-    display:block;
-    margin-top:12px;
-    font-weight:500;
+.card{
+    background:#0d0d0d;
+    border:1px solid #d4af37;
+    padding:20px;
+    border-radius:15px;
 }
 
 input,select{
     width:100%;
-    padding:16px;
-    margin-top:8px;
-    border-radius:12px;
-    border:none;
-    background:#262626;
+    padding:12px;
+    margin-top:10px;
+    border-radius:10px;
+    border:1px solid #d4af37;
+    background:#000;
     color:white;
-    font-size:16px;
-}
-
-select{
-    font-size:17px;
-    padding:18px;
 }
 
 button{
     width:100%;
-    margin-top:15px;
-    padding:18px;
+    margin-top:10px;
+    padding:14px;
     border:none;
-    border-radius:14px;
-    background:linear-gradient(45deg,#ff0099,#7a00ff);
-    color:white;
-    font-weight:700;
+    border-radius:10px;
+    background:#d4af37;
+    color:black;
+    font-weight:bold;
     cursor:pointer;
-    font-size:16px;
 }
 
-.agenda-item{
-    background:#242424;
-    padding:18px;
-    border-radius:15px;
+.agenda{
+    background:#111;
+    border-left:4px solid #d4af37;
+    padding:10px;
     margin-top:10px;
-    font-size:15px;
+    border-radius:10px;
 }
 
-.excluir{
-    background:red;
+.admin-box{
+    display:none;
     margin-top:10px;
+}
+
+small{
+    color:#aaa;
 }
 
 </style>
-
 </head>
 
 <body>
 
-<h1>AGENDA ONLINE STUDIO</h1>
+<h1>Studio Agendamentos</h1>
 
 <div class="container">
 
-<!-- FORM -->
+<!-- CLIENTE -->
 <div class="card">
 
-<label>Cliente</label>
-<input id="cliente" type="text"/>
+<h2 style="color:#d4af37;">Agendar Horário</h2>
 
-<label>Profissional</label>
-<select id="profissional">
-    <option>Ruan Cabeleireiro</option>
-    <option>Josi Manicure</option>
-    <option>Rafaela Lash</option>
-    <option>Rafaela Designer</option>
-    <option>Rafaela Cursos</option>
-    <option>Djesilyn Nail Designer</option>
-</select>
+<input id="nome" placeholder="Nome">
+<input id="telefone" placeholder="Telefone">
+<input id="servico" placeholder="Serviço">
 
-<label>Procedimento</label>
-<input id="procedimento" type="text"/>
-
-<label>Data</label>
 <select id="data"></select>
-
-<label>Horário</label>
 <select id="horario"></select>
 
 <button onclick="agendar()">AGENDAR</button>
 
 </div>
 
-<!-- LISTA -->
+<!-- ADMIN -->
 <div class="card">
 
-<h2>Agendamentos</h2>
-<div id="lista"></div>
+<h2 style="color:#d4af37;">Painel Admin</h2>
+
+<button onclick="loginAdmin()">Entrar no Painel</button>
+
+<div id="admin" class="admin-box"></div>
 
 </div>
 
@@ -134,15 +126,25 @@ button{
 
 <script>
 
-let agendamentos = JSON.parse(localStorage.getItem("agenda")) || [];
+let dados = JSON.parse(localStorage.getItem("agendamentos")) || [];
+
+/* LOGIN ADMIN */
+function loginAdmin(){
+    let senha = prompt("Senha do admin:");
+    if(senha === "gold2026"){
+        document.getElementById("admin").style.display = "block";
+        renderAdmin();
+    } else {
+        alert("Senha errada");
+    }
+}
 
 /* DATAS */
 function gerarDatas(){
+    let select = document.getElementById("data");
 
-    const select = document.getElementById("data");
-
-    let inicio = new Date(2026,4,27); // 27/05/2026
-    let fim = new Date(2027,0,31);    // 31/01/2027
+    let inicio = new Date();
+    let fim = new Date(2027,6,20);
 
     while(inicio <= fim){
 
@@ -162,18 +164,15 @@ function gerarDatas(){
     }
 }
 
-/* HORÁRIOS 30 EM 30 MIN (09:00 - 19:00) */
-function gerarHorarios(){
+/* HORÁRIO 30 EM 30 */
+function gerarHorario(){
 
-    const select = document.getElementById("horario");
+    let select = document.getElementById("horario");
 
     for(let h=9; h<=19; h++){
+        for(let m of [0,30]){
 
-        let minutos = [0,30];
-
-        for(let m of minutos){
-
-            if(h === 19 && m === 30) continue;
+            if(h===19 && m===30) continue;
 
             let hora = String(h).padStart(2,'0');
             let min = String(m).padStart(2,'0');
@@ -189,66 +188,58 @@ function gerarHorarios(){
     }
 }
 
+/* AGENDAR */
 function agendar(){
 
-    const cliente = document.getElementById("cliente").value;
-    const profissional = document.getElementById("profissional").value;
-    const procedimento = document.getElementById("procedimento").value;
-    const data = document.getElementById("data").value;
-    const horario = document.getElementById("horario").value;
+    let nome = document.getElementById("nome").value;
+    let telefone = document.getElementById("telefone").value;
+    let servico = document.getElementById("servico").value;
+    let data = document.getElementById("data").value;
+    let horario = document.getElementById("horario").value;
 
-    if(!cliente || !procedimento){
+    if(!nome || !telefone || !servico){
         alert("Preencha tudo");
         return;
     }
 
-    agendamentos.push({
-        cliente,
-        profissional,
-        procedimento,
-        data,
-        horario
-    });
+    dados.push({nome,telefone,servico,data,horario});
 
-    localStorage.setItem("agenda", JSON.stringify(agendamentos));
+    localStorage.setItem("agendamentos", JSON.stringify(dados));
 
-    render();
+    alert("Agendado com sucesso!");
 }
 
-function excluir(i){
-    agendamentos.splice(i,1);
-    localStorage.setItem("agenda", JSON.stringify(agendamentos));
-    render();
-}
+/* ADMIN */
+function renderAdmin(){
 
-function render(){
+    let div = document.getElementById("admin");
+    div.innerHTML = "";
 
-    const lista = document.getElementById("lista");
-    lista.innerHTML = "";
+    dados.forEach((a,i)=>{
 
-    agendamentos.forEach((a,i)=>{
+        div.innerHTML += `
+        <div class="agenda">
 
-        lista.innerHTML += `
-        <div class="agenda-item">
+            <b>${a.nome}</b><br>
+            📞 ${a.telefone}<br>
+            💈 ${a.servico}<br>
+            📅 ${a.data}<br>
+            ⏰ ${a.horario}<br>
 
-            <b>${a.cliente}</b><br>
-            Profissional: ${a.profissional}<br>
-            Procedimento: ${a.procedimento}<br>
-            Data: ${a.data}<br>
-            Horário: ${a.horario}<br>
-
-            <button class="excluir" onclick="excluir(${i})">
-            EXCLUIR
-            </button>
-
+            <button onclick="excluir(${i})">Excluir</button>
         </div>
         `;
     });
 }
 
+function excluir(i){
+    dados.splice(i,1);
+    localStorage.setItem("agendamentos", JSON.stringify(dados));
+    renderAdmin();
+}
+
 gerarDatas();
-gerarHorarios();
-render();
+gerarHorario();
 
 </script>
 
