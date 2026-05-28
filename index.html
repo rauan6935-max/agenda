@@ -104,8 +104,8 @@ button{
     <option>Ruan Cabeleireiro</option>
     <option>Josi Manicure</option>
     <option>Rafaela Lash</option>
-	<option>Rafaela Designer</option>
-	<option>Rafaela Cusos</option>
+    <option>Rafaela Designer</option>
+    <option>Rafaela Cursos</option>
     <option>Djesilyn Nail Designer</option>
 </select>
 
@@ -136,7 +136,7 @@ button{
 
 let agendamentos = JSON.parse(localStorage.getItem("agenda")) || [];
 
-/* DATA: 27/05/2026 até 31/01/2027 */
+/* DATAS */
 function gerarDatas(){
 
     const select = document.getElementById("data");
@@ -162,13 +162,18 @@ function gerarDatas(){
     }
 }
 
-/* HORÁRIOS 09:00 até 19:00 */
+/* HORÁRIOS 30 EM 30 MIN (09:00 - 19:00) */
 function gerarHorarios(){
 
     const select = document.getElementById("horario");
 
     for(let h=9; h<=19; h++){
-        for(let m=0; m<60; m++){
+
+        let minutos = [0,30];
+
+        for(let m of minutos){
+
+            if(h === 19 && m === 30) continue;
 
             let hora = String(h).padStart(2,'0');
             let min = String(m).padStart(2,'0');
@@ -239,7 +244,6 @@ function render(){
         </div>
         `;
     });
-
 }
 
 gerarDatas();
