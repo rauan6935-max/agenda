@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Agenda Online Studio</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    background:#0f0f0f;
+    color:white;
+    padding:30px;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:25px;
+    font-size:38px;
+    background:linear-gradient(45deg,#ff0099,#7a00ff);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.container{
+    max-width:1450px;
+    margin:auto;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:25px;
+}
+
+.card{
+    background:#181818;
+    border-radius:25px;
+    padding:25px;
+    box-shadow:0 0 25px rgba(255,255,255,0.05);
+}
+
+h2{
+    margin-bottom:20px;
+    font-size:24px;
+}
+
+label{
+    display:block;
+    margin-top:15px;
+    margin-bottom:7px;
+    font-weight:500;
+}
+
+input,
+select{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:14px;
+    outline:none;
+    background:#262626;
+    color:white;
+    font-size:15px;
+}
+
+button{
+    width:100%;
+    margin-top:20px;
+    padding:15px;
+    border:none;
+    border-radius:15px;
+    background:linear-gradient(45deg,#ff0099,#7a00ff);
+    color:white;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover{
+    transform:scale(1.02);
+}
+
+.lista{
+    margin-top:20px;
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+    max-height:800px;
+    overflow:auto;
+}
+
+.agenda-item{
+    background:#242424;
+    border-radius:18px;
+    padding:18px;
+    border-left:5px solid #ff0099;
+}
+
+.agenda-item h3{
+    margin-bottom:8px;
+    font-size:20px;
+}
+
+.agenda-item p{
+    color:#ccc;
+    margin-top:5px;
+    font-size:14px;
+}
+
+.ocupado{
+    color:#ff4d4d;
+    font-weight:700;
+}
+
+.topo{
+    text-align:center;
+    margin-bottom:35px;
+}
+
+.info{
+    margin-top:10px;
+    color:#aaa;
+}
+
+#diaSemana{
+    margin-top:10px;
+    color:#ff66cc;
+    font-weight:600;
+    font-size:15px;
+}
+
+.excluir-btn{
+    margin-top:15px;
+    background:#ff3333;
+}
+
+@media(max-width:900px){
+
+.container{
+    grid-template-columns:1fr;
+}
+
+}
+
+</style>
+
+</head>
+<body>
+
+<div class="topo">
+
+<h1>AGENDA ONLINE STUDIO</h1>
+
+<p class="info">
+Sistema profissional de agendamento
+</p>
+
+</div>
+
+<div class="container">
+
+<!-- AGENDAMENTO -->
+<div class="card">
+
+<h2>Novo Agendamento</h2>
+
+<label>Nome do Cliente</label>
+
+<input 
+type="text" 
+id="cliente" 
+placeholder="Digite o nome do cliente"
+/>
+
+<label>Procedimento</label>
+
+<select id="profissional">
+
+<optgroup label="Ruan Cabeleireiro">
+
+<option value="Ruan - Corte Masculino">
+Ruan - Corte Masculino
+</option>
+
+<option value="Ruan - Corte + Barba">
+Ruan - Corte + Barba
+</option>
+
+<option value="Ruan - Progressiva">
+Ruan - Progressiva
+</option>
+
+<option value="Ruan - Luzes">
+Ruan - Luzes
+</option>
+
+</optgroup>
+
+<optgroup label="Josi Manicure">
+
+<option value="Josi - Manicure">
+Josi - Manicure
+</option>
+
+<option value="Josi - Pedicure">
+Josi - Pedicure
+</option>
+
+<option value="Josi - Alongamento">
+Josi - Alongamento
+</option>
+
+</optgroup>
+
+<optgroup label="Rafaela Lash">
+
+<option value="Rafaela Lash - Fio a Fio">
+Rafaela Lash - Fio a Fio
+</option>
+
+<option value="Rafaela Lash - Volume Russo">
+Rafaela Lash - Volume Russo
+</option>
+
+</optgroup>
+
+</select>
+
+<label>Dia</label>
+
+<select id="dia" onchange="mostrarDiaSemana()"></select>
+
+<p id="diaSemana"></p>
+
+<label>Horário</label>
+
+<select id="horario"></select>
+
+<button onclick="agendar()">
+AGENDAR HORÁRIO
+</button>
+
+</div>
+
+<!-- LISTA -->
+<div class="card">
+
+<h2>Horários Agendados</h2>
+
+<div class="lista" id="listaAgendamentos"></div>
+
+</div>
+
+</div>
+
+<script>
+
+const diaSelect = document.getElementById("dia");
+
+const lista = document.getElementById("listaAgendamentos");
+
+/* LOCAL STORAGE */
+let agendamentos =
+JSON.parse(localStorage.getItem("agendamentosStudio")) || [];
+
+/* GERAR DATAS */
+
+function gerarDatas(){
+
+    const hoje = new Date();
+
+    const fim = new Date("2027-01-31");
+
+    while(hoje <= fim){
+
+        let dia = String(hoje.getDate()).padStart(2,'0');
+
+        let mes = String(hoje.getMonth()+1).padStart(2,'0');
+
+        let ano = hoje.getFullYear();
+
+        let dataFormatada = `${dia}/${mes}/${ano}`;
+
+        let option = document.createElement("option");
+
+        option.value = dataFormatada;
+
+        option.innerHTML = dataFormatada;
+
+        diaSelect.appendChild(option);
+
+        hoje.setDate(hoje.getDate()+1);
+
+    }
+
+    mostrarDiaSemana();
+
+}
+
+gerarDatas();
+
+/* DIA DA SEMANA */
+
+function mostrarDiaSemana(){
+
+    const valor = diaSelect.value;
+
+    const partes = valor.split("/");
+
+    const data = new Date(
+        partes[2],
+        partes[1]-1,
+        partes[0]
+    );
+
+    const diasSemana = [
+
+        "Domingo",
+        "Segunda-feira",
+        "Terça-feira",
+        "Quarta-feira",
+        "Quinta-feira",
+        "Sexta-feira",
+        "Sábado"
+
+    ];
+
+    document.getElementById("diaSemana").innerHTML =
+    "📅 " + diasSemana[data.getDay()];
+
+}
+
+/* GERAR HORÁRIOS */
+
+function gerarHorarios(){
+
+    const horarioSelect =
+    document.getElementById("horario");
+
+    horarioSelect.innerHTML = "";
+
+    for(let hora = 9; hora <= 19; hora++){
+
+        for(let minuto = 0; minuto < 60; minuto++){
+
+            let horaFormatada =
+            String(hora).padStart(2,'0');
+
+            let minutoFormatado =
+            String(minuto).padStart(2,'0');
+
+            let horario =
+            `${horaFormatada}:${minutoFormatado}`;
+
+            let option =
+            document.createElement("option");
+
+            option.value = horario;
+
+            option.innerHTML = horario;
+
+            horarioSelect.appendChild(option);
+
+        }
+
+    }
+
+}
+
+gerarHorarios();
+
+/* AGENDAR */
+
+function agendar(){
+
+    const cliente =
+    document.getElementById("cliente").value;
+
+    const profissional =
+    document.getElementById("profissional").value;
+
+    const dia =
+    document.getElementById("dia").value;
+
+    const horario =
+    document.getElementById("horario").value;
+
+    if(cliente === ""){
+
+        alert("Digite o nome do cliente");
+
+        return;
+
+    }
+
+    const existe =
+    agendamentos.find(item =>
+
+        item.profissional === profissional &&
+        item.dia === dia &&
+        item.horario === horario
+
+    );
+
+    if(existe){
+
+        alert("Esse horário já está ocupado!");
+
+        return;
+
+    }
+
+    const novoAgendamento = {
+
+        cliente,
+        profissional,
+        dia,
+        horario
+
+    };
+
+    agendamentos.push(novoAgendamento);
+
+    /* SALVAR */
+    localStorage.setItem(
+        "agendamentosStudio",
+        JSON.stringify(agendamentos)
+    );
+
+    atualizarAgenda();
+
+    document.getElementById("cliente").value = "";
+
+}
+
+/* ATUALIZAR */
+
+function atualizarAgenda(){
+
+    lista.innerHTML = "";
+
+    agendamentos.sort((a,b)=>{
+
+        const dataA =
+        a.dia.split("/").reverse().join("-");
+
+        const dataB =
+        b.dia.split("/").reverse().join("-");
+
+        return new Date(dataA) - new Date(dataB);
+
+    });
+
+    agendamentos.forEach((item,index) => {
+
+        lista.innerHTML += `
+
+        <div class="agenda-item">
+
+            <h3>${item.cliente}</h3>
+
+            <p>
+            <strong>Procedimento:</strong>
+            ${item.profissional}
+            </p>
+
+            <p>
+            <strong>Data:</strong>
+            ${item.dia}
+            </p>
+
+            <p>
+            <strong>Horário:</strong>
+            ${item.horario}
+            </p>
+
+            <p class="ocupado">
+            Horário Ocupado
+            </p>
+
+            <button 
+            class="excluir-btn"
+            onclick="excluirAgendamento(${index})">
+            EXCLUIR
+            </button>
+
+        </div>
+
+        `;
+
+    });
+
+}
+
+/* EXCLUIR */
+
+function excluirAgendamento(index){
+
+    agendamentos.splice(index,1);
+
+    localStorage.setItem(
+        "agendamentosStudio",
+        JSON.stringify(agendamentos)
+    );
+
+    atualizarAgenda();
+
+}
+
+/* CARREGAR AUTOMÁTICO */
+
+atualizarAgenda();
+
+</script>
+
+</body>
+</html>
